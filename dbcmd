@@ -1,0 +1,238 @@
+#!/usr/bin/env bash
+
+set -eu
+set -o pipefail
+
+readonly SELF=$(basename "${BASH_SOURCE[0]}")
+readonly SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+readonly OS=$(uname)
+readonly VERSION=1.0.0
+
+readonly OPT_BASE_NAME=${SELF}
+
+OPT_HELP=
+OPT_DEBUG=
+OPT_VERBOSE=
+
+OPT_CONFIG=
+OPT_IMPORT=
+OPT_EXPORT=
+OPT_FILE=
+
+DATABASE_HOST=
+DATABASE_NAME=
+DATABASE_PORT=
+DATABASE_USER=
+DATABASE_PASSWORD=
+
+OPT_DATABASE_HOST=
+OPT_DATABASE_PORT=
+OPT_DATABASE_NAME=
+OPT_DATABASE_USER=
+OPT_DATABASE_PASSWORD=
+
+function error () {
+  if [[ "${OS}" == "Darwin" ]]; then
+    echo "error: ${@}" >&2
+  else
+    echo -e "\e[0;31m\e[1merror: \e[0;0m${@}" >&2
+  fi
+
+  exit 1
+}
+
+function warn () {
+  if [[ "${OS}" == "Darwin" ]]; then
+    echo "warning: ${@}" >&2
+  else
+    echo -e "\e[0;33mwarning: \e[0;0m${@}" >&2
+  fi
+}
+
+function debug () {
+  if [[ -n "${OPT_DEBUG}" ]]; then
+    echo '**'
+    echo \${@}: ${@}
+    echo \$OPT_DEBUG: "${OPT_DEBUG}"
+  fi
+}
+
+function parse_arguments () {
+  debug ${FUNCNAME[0]} "$@"
+
+  local opts=$(getopt -n "${SELF}" --options hdvC:IEH:p:N:U:P --longoptions help,debug,verbose,config:,import,export,database-host:,database-port:,database-name:,database-user:,database-password: -- "$@")
+
+  if [[ $? != 0 ]]; then
+    error "Failed to parse arguments. Exiting."
+  fi
+
+  eval set -- "${opts}"
+
+  while true; do
+    case "$1" in
+      (-h|--help) OPT_HELP=true; shift ;;
+      (-d|--debug) OPT_DEBUG=true; shift ;;
+      (-v|--verbose) OPT_VERBOSE=true; shift ;;
+      (-C|--config) OPT_CONFIG=$2; shift 2 ;;
+      (-I|--import) OPT_IMPORT=true; shift ;;
+      (-E|--export) OPT_EXPORT=true; shift ;;
+      (-H|--database-host) OPT_DATABASE_HOST=$2; shift 2 ;;
+      (-p|--database-port) OPT_DATABASE_PORT=$2; shift 2 ;;
+      (-N|--database-name) OPT_DATABASE_NAME=$2; shift 2 ;;
+      (-U|--database-user) OPT_DATABASE_USER=$2; shift 2 ;;
+      (-P|--database-password) OPT_DATABASE_PASSWORD=$2; shift 2 ;;
+      (--) shift; break ;;
+      (*) break ;;
+    esac
+  done
+
+  OPT_FILE="${@: -1}"
+}
+
+function process_arguments () {
+  debug ${FUNCNAME[0]} "$@"
+
+  if [[ -n "${OPT_HELP}" || "${#}" -lt 1 ]]; then
+    display_usage
+  elif [[ -z "${OPT_CONFIG}" ]]; then
+    display_usage
+  else
+    return 0
+  fi
+}
+
+function display_usage () {
+  debug ${FUNCNAME[0]} "$@"
+
+  cat << EOF
+${SELF} v${VERSION} [OPTIONS]...
+
+OPTIONS:
+  -h, --help              Show this help
+  -d, --debug             Enable debugging mode
+  -v, --verbose           Enable verbose output
+  -C, --config            Specify config source
+  -I, --import            Perform database import
+  -E, --export            Perform database export
+  -H, --database-host     Specify the database host
+  -p, --database-port     Specify the database port
+  -N, --database-name     Specify the database name
+  -U, --database-user     Specify the database user
+  -P, --database-password Specify the database password
+EOF
+  exit 0
+}
+
+function get_value () {
+  debug ${FUNCNAME[0]} "$@"
+
+  local key=$1
+
+  cat "${OPT_CONFIG}" | awk -F ' ' "/^  ${key}:/ {print \$2}" | sed -n 1p
+}
+
+function set_host () {
+  debug ${FUNCNAME[0]} "$@"
+
+  DATABASE_HOST=$(get_value host)
+}
+
+function set_port () {
+  debug ${FUNCNAME[0]} "$@"
+
+  DATABASE_PORT=$(get_value port)
+}
+
+function set_name () {
+  debug ${FUNCNAME[0]} "$@"
+
+  DATABASE_NAME=$(get_value db)
+}
+
+function set_user () {
+  debug ${FUNCNAME[0]} "$@"
+
+  DATABASE_USER=$(get_value user)
+}
+
+function set_password () {
+  debug ${FUNCNAME[0]} "$@"
+
+  DATABASE_PASSWORD=$(get_value pass)
+}
+
+function set_parameters () {
+  debug ${FUNCNAME[0]} "$@"
+
+  set_host
+  set_port
+  set_name
+  set_user
+  set_password
+}
+
+function export_database () {
+  debug ${FUNCNAME[0]} "$@"
+
+  PGPASSWORD=${OPT_DATABASE_PASSWORD:-$DATABASE_PASSWORD} \
+            pg_dump \
+            -h "${OPT_DATABASE_HOST:-$DATABASE_HOST}" \
+            -p "${OPT_DATABASE_PORT:-$DATABASE_PORT}" \
+            -U "${OPT_DATABASE_USER:-$DATABASE_USER}" \
+            -Fc \
+            "${OPT_DATABASE_NAME:-$DATABASE_NAME}" \
+            -f "${OPT_FILE}"
+}
+
+function import_database () {
+  debug ${FUNCNAME[0]} "$@"
+
+  PGPASSWORD=${OPT_DATABASE_PASSWORD:-$DATABASE_PASSWORD} \
+            pg_restore \
+            -c \
+            -h "${OPT_DATABASE_HOST:-$DATABASE_HOST}" \
+            -p "${OPT_DATABASE_PORT:-$DATABASE_PORT}" \
+            -d "${OPT_DATABASE_NAME:-$DATABASE_NAME}" \
+            -U "${OPT_DATABASE_USER:-$DATABASE_USER}" \
+            "${OPT_FILE}"
+}
+
+function credentials_ok () {
+  debug ${FUNCNAME[0]} "$@"
+
+  if [[ -n "${OPT_DATABASE_HOST:-$DATABASE_HOST}" && \
+          -n "${OPT_DATABASE_PORT:-$DATABASE_PORT}" && \
+          -n "${OPT_DATABASE_NAME:-$DATABASE_NAME}" && \
+          -n "${OPT_DATABASE_USER:-$DATABASE_USER}" && \
+          -n "${OPT_DATABASE_PASSWORD:-$DATABASE_PASSWORD}" ]]; then
+    return 0
+  else
+    return 1
+  fi
+
+}
+
+function run () {
+  debug ${FUNCNAME[0]} "$@"
+
+  set_parameters
+
+  if [[ -n "${OPT_IMPORT}" ]] && credentials_ok; then
+    import_database
+  elif [[ -n "${OPT_EXPORT}" ]] && credentials_ok; then
+    export_database
+  else
+    display_usage
+  fi
+}
+
+function main () {
+  debug ${FUNCNAME[0]} "$@"
+
+  parse_arguments "$@"
+  process_arguments "$@"
+
+  run
+}
+
+main "$@"
