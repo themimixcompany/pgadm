@@ -111,14 +111,14 @@ OPTIONS:
   -h, --help              Show this help
   -d, --debug             Enable debugging mode
   -v, --verbose           Enable verbose output
-  -C, --config            Specify config source
+  -C, --config            Set config source
   -I, --import            Perform database import
   -E, --export            Perform database export
-  -H, --database-host     Specify the database host
-  -p, --database-port     Specify the database port
-  -N, --database-name     Specify the database name
-  -U, --database-user     Specify the database user
-  -P, --database-password Specify the database password
+  -H, --database-host     Set the database host
+  -p, --database-port     Set the database port
+  -N, --database-name     Set the database name
+  -U, --database-user     Set the database user
+  -P, --database-password Set the database password
 EOF
   exit 0
 }
