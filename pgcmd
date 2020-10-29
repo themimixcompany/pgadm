@@ -6,7 +6,7 @@ set -o pipefail
 readonly SELF=$(basename "${BASH_SOURCE[0]}")
 readonly SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 readonly OS=$(uname)
-readonly VERSION=1.0.0
+readonly VERSION=1.0.1
 
 readonly OPT_BASE_NAME=${SELF}
 
@@ -131,44 +131,14 @@ function get_value () {
   cat "${OPT_CONFIG}" | awk -F ' ' "/^  ${key}:/ {print \$2}" | sed -n 1p
 }
 
-function set_host () {
-  debug ${FUNCNAME[0]} "$@"
-
-  DATABASE_HOST=$(get_value host)
-}
-
-function set_port () {
-  debug ${FUNCNAME[0]} "$@"
-
-  DATABASE_PORT=$(get_value port)
-}
-
-function set_name () {
-  debug ${FUNCNAME[0]} "$@"
-
-  DATABASE_NAME=$(get_value db)
-}
-
-function set_user () {
-  debug ${FUNCNAME[0]} "$@"
-
-  DATABASE_USER=$(get_value user)
-}
-
-function set_password () {
-  debug ${FUNCNAME[0]} "$@"
-
-  DATABASE_PASSWORD=$(get_value pass)
-}
-
 function set_parameters () {
   debug ${FUNCNAME[0]} "$@"
 
-  set_host
-  set_port
-  set_name
-  set_user
-  set_password
+  DATABASE_HOST=$(get_value host)
+  DATABASE_PORT=$(get_value port)
+  DATABASE_NAME=$(get_value db)
+  DATABASE_USER=$(get_value user)
+  DATABASE_PASSWORD=$(get_value pass)
 }
 
 function export_database () {
