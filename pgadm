@@ -5,7 +5,7 @@ set -euo pipefail
 readonly SELF="$(basename ${BASH_SOURCE[0]})"
 readonly SELF_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) > /dev/null 2>&1 && pwd)"
 readonly OS="$(uname)"
-readonly VERSION="1.0.8"
+readonly VERSION="1.0.9"
 
 OPT_HELP=
 OPT_DEBUG=
@@ -156,37 +156,37 @@ function set_parameters () {
 function export_database () {
   debug ${FUNCNAME[0]} "$@"
 
-  PGPASSWORD=${OPT_DATABASE_PASSWORD:-$DATABASE_PASSWORD} \
+  PGPASSWORD=${OPT_DATABASE_PASSWORD:-${VAL_DATABASE_PASSWORD}} \
             pg_dump \
-            -h "${OPT_DATABASE_HOST:-$VAL_DATABASE_HOST}" \
-            -p "${OPT_DATABASE_PORT:-$VAL_DATABASE_PORT}" \
-            -U "${OPT_DATABASE_USER:-$VAL_DATABASE_USER}" \
+            -h "${OPT_DATABASE_HOST:-${VAL_DATABASE_HOST}}" \
+            -p "${OPT_DATABASE_PORT:-${VAL_DATABASE_PORT}}" \
+            -U "${OPT_DATABASE_USER:-${VAL_DATABASE_USER}}" \
             -Fc \
-            "${OPT_DATABASE_NAME:-$VAL_DATABASE_NAME}" \
+            "${OPT_DATABASE_NAME:-${VAL_DATABASE_NAME}}" \
             -f "${OPT_FILE}"
 }
 
 function import_database () {
   debug ${FUNCNAME[0]} "$@"
 
-  PGPASSWORD=${OPT_DATABASE_PASSWORD:-$DATABASE_PASSWORD} \
+  PGPASSWORD=${OPT_DATABASE_PASSWORD:-$VAL_DATABASE_PASSWORD} \
             pg_restore \
             -c \
-            -h "${OPT_DATABASE_HOST:-$VAL_DATABASE_HOST}" \
-            -p "${OPT_DATABASE_PORT:-$VAL_DATABASE_PORT}" \
-            -d "${OPT_DATABASE_NAME:-$VAL_DATABASE_NAME}" \
-            -U "${OPT_DATABASE_USER:-$VAL_DATABASE_USER}" \
+            -h "${OPT_DATABASE_HOST:-${VAL_DATABASE_HOST}}" \
+            -p "${OPT_DATABASE_PORT:-${VAL_DATABASE_PORT}}" \
+            -d "${OPT_DATABASE_NAME:-${VAL_DATABASE_NAME}}" \
+            -U "${OPT_DATABASE_USER:-${VAL_DATABASE_USER}}" \
             "${OPT_FILE}"
 }
 
 function credentials_ok () {
   debug ${FUNCNAME[0]} "$@"
 
-  if [[ -n "${OPT_DATABASE_HOST:-$VAL_DATABASE_HOST}" && \
-          -n "${OPT_DATABASE_PORT:-$VAL_DATABASE_PORT}" && \
-          -n "${OPT_DATABASE_NAME:-$VAL_DATABASE_NAME}" && \
-          -n "${OPT_DATABASE_USER:-$VAL_DATABASE_USER}" && \
-          -n "${OPT_DATABASE_PASSWORD:-$VAL_DATABASE_PASSWORD}" ]]; then
+  if [[ -n "${OPT_DATABASE_HOST:-${VAL_DATABASE_HOST}}" && \
+          -n "${OPT_DATABASE_PORT:-${VAL_DATABASE_PORT}}" && \
+          -n "${OPT_DATABASE_NAME:-${VAL_DATABASE_NAME}}" && \
+          -n "${OPT_DATABASE_USER:-${VAL_DATABASE_USER}}" && \
+          -n "${OPT_DATABASE_PASSWORD:-${VAL_DATABASE_PASSWORD}}" ]]; then
     return 0
   else
     return 1
@@ -215,6 +215,6 @@ function main () {
   process_arguments "$@"
 
   run
-}
+}n
 
 main "$@"
