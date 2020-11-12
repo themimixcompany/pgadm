@@ -31,16 +31,16 @@ Scripts for exporting and importing Postgres databases from Miki configuration.
 
 ### <a name="export">Export</a>
 
-To export the database specified in `config.yml` to the file `dump`, run:
+To export to the file `/tmp/dump.pg`, run:
 
-    pgadm -E /tmp/dump.pg
+    pgadm -Ef /tmp/dump.pg
 
 
 ### <a name="import">Import</a>
 
-To import the data from the file `dump` into the database specified in `config.yml`, run:
+To import from the file `/tmp/dump.pg`, run:
 
-    pgadm -I /tmp/dump.pg
+    pgadm -If /tmp/dump.pg
 
 
 ### <a name="miscellany">Miscellany</a>

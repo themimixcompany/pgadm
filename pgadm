@@ -63,7 +63,7 @@ function parse_arguments () {
   local opts=$(getopt -n "${SELF}" --options C:IEf:e:H:p:N:U:P --longoptions help,debug,verbose,version,config:,import,export,file:,exclude-table:,database-host:,database-port:,database-name:,database-user:,database-password: -- "$@")
 
   if [[ $? != 0 ]]; then
-    error "Failed to parse arguments. Exiting."
+    error "Failed to parse arguments. Aborting."
   fi
 
   eval set -- "${opts}"
