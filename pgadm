@@ -215,6 +215,6 @@ function main () {
   process_arguments "$@"
 
   run
-}n
+}
 
 main "$@"
