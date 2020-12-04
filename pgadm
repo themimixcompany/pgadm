@@ -59,7 +59,7 @@ function debug () {
 }
 
 function parse_arguments () {
-  debug ${FUNCNAME[0]} "$@"
+  debug "${FUNCNAME[0]}" "$@"
 
   local opts=$(getopt -n "${SELF}" --options C:IEf:e:H:p:N:U:P --longoptions help,debug,verbose,version,config:,import,export,file:,exclude-table:,database-host:,database-port:,database-name:,database-user:,database-password:,delete -- "$@")
 
@@ -93,7 +93,7 @@ function parse_arguments () {
 }
 
 function process_arguments () {
-  debug ${FUNCNAME[0]} "$@"
+  debug "${FUNCNAME[0]}" "$@"
 
   if [[ -n "${OPT_HELP}" || "${#}" -lt 1 ]]; then
     display_usage
@@ -107,7 +107,7 @@ function process_arguments () {
 }
 
 function display_usage () {
-  debug ${FUNCNAME[0]} "$@"
+  debug "${FUNCNAME[0]}" "$@"
 
   cat << EOF
 ${SELF} v${VERSION} [OPTIONS]...
@@ -132,7 +132,7 @@ EOF
 }
 
 function display_version () {
-  debug ${FUNCNAME[0]} "$@"
+  debug "${FUNCNAME[0]}" "$@"
 
   cat << EOF
 ${SELF} v${VERSION}
@@ -141,7 +141,7 @@ EOF
 }
 
 function get_value () {
-  debug ${FUNCNAME[0]} "$@"
+  debug "${FUNCNAME[0]}" "$@"
 
   local key=$1
 
@@ -149,7 +149,7 @@ function get_value () {
 }
 
 function set_parameters () {
-  debug ${FUNCNAME[0]} "$@"
+  debug "${FUNCNAME[0]}" "$@"
 
   VAL_DATABASE_HOST=$(get_value host)
   VAL_DATABASE_PORT=$(get_value port)
@@ -159,7 +159,7 @@ function set_parameters () {
 }
 
 function export_database () {
-  debug ${FUNCNAME[0]} "$@"
+  debug "${FUNCNAME[0]}" "$@"
 
   PGPASSWORD=${OPT_DATABASE_PASSWORD:-${VAL_DATABASE_PASSWORD}} \
             pg_dump \
@@ -172,7 +172,7 @@ function export_database () {
 }
 
 function import_database () {
-  debug ${FUNCNAME[0]} "$@"
+  debug "${FUNCNAME[0]}" "$@"
 
   PGPASSWORD=${OPT_DATABASE_PASSWORD:-$VAL_DATABASE_PASSWORD} \
             pg_restore \
@@ -189,7 +189,7 @@ function import_database () {
 }
 
 function credentials_ok () {
-  debug ${FUNCNAME[0]} "$@"
+  debug "${FUNCNAME[0]}" "$@"
 
   if [[ -n "${OPT_DATABASE_HOST:-${VAL_DATABASE_HOST}}" && \
           -n "${OPT_DATABASE_PORT:-${VAL_DATABASE_PORT}}" && \
@@ -204,7 +204,7 @@ function credentials_ok () {
 }
 
 function run () {
-  debug ${FUNCNAME[0]} "$@"
+  debug "${FUNCNAME[0]}" "$@"
 
   set_parameters
 
@@ -218,7 +218,7 @@ function run () {
 }
 
 function main () {
-  debug ${FUNCNAME[0]} "$@"
+  debug "${FUNCNAME[0]}" "$@"
 
   parse_arguments "$@"
   process_arguments "$@"
