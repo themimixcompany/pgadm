@@ -5,7 +5,7 @@ set -euo pipefail
 readonly SELF="$(basename ${BASH_SOURCE[0]})"
 readonly SELF_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) > /dev/null 2>&1 && pwd)"
 readonly OS="$(uname)"
-readonly VERSION="1.1.0"
+readonly VERSION="1.2.2"
 
 OPT_HELP=
 OPT_DEBUG=
@@ -15,6 +15,7 @@ OPT_VERSION=
 OPT_CONFIG="/var/miki/config.yml"
 OPT_IMPORT=
 OPT_EXPORT=
+OPT_EXPORT_PLAIN=
 OPT_FILE=
 OPT_EXCLUDE_TABLE="users"
 
@@ -61,7 +62,7 @@ function debug () {
 function parse_arguments () {
   debug "${FUNCNAME[0]}" "$@"
 
-  local opts=$(getopt -n "${SELF}" --options C:IEf:e:H:p:N:U:P --longoptions help,debug,verbose,version,config:,import,export,file:,exclude-table:,database-host:,database-port:,database-name:,database-user:,database-password:,delete -- "$@")
+  local opts=$(getopt -n "${SELF}" --options C:IEef:H:p:N:U:P --longoptions help,debug,verbose,version,config:,import,export,export-plain,file:,exclude-table:,database-host:,database-port:,database-name:,database-user:,database-password:,delete -- "$@")
 
   if [[ $? != 0 ]]; then
     error "Failed to parse arguments. Aborting."
@@ -79,8 +80,9 @@ function parse_arguments () {
       (-I|--import) OPT_IMPORT=true; shift ;;
       (--delete) OPT_DELETE=true; shift ;;
       (-E|--export) OPT_EXPORT=true; shift ;;
+      (-e|--export-plain) OPT_EXPORT_PLAIN=true; shift ;;
       (-f|--file) OPT_FILE=$2; shift 2 ;;
-      (-e|--exclude-table) OPT_EXCLUDE_TABLE=$2; shift 2 ;;
+      (--exclude-table) OPT_EXCLUDE_TABLE=$2; shift 2 ;;
       (-H|--database-host) OPT_DATABASE_HOST=$2; shift 2 ;;
       (-p|--database-port) OPT_DATABASE_PORT=$2; shift 2 ;;
       (-N|--database-name) OPT_DATABASE_NAME=$2; shift 2 ;;
@@ -121,6 +123,7 @@ OPTIONS:
   -I, --import                    Flag to perform database import
       --delete                    Flag to delete the dump file after an import
   -E, --export                    Flag to perform database export
+  -e, --export-plain              Flag to perform plain database export
   -f, --file <PATH>               The file for the import or export
   -H, --database-host <TEXT>      The database host
   -p, --database-port <NUM>       The database port
@@ -182,8 +185,20 @@ function export_database () {
     -h "${OPT_DATABASE_HOST:-${VAL_DATABASE_HOST}}" \
     -p "${OPT_DATABASE_PORT:-${VAL_DATABASE_PORT}}" \
     -U "${OPT_DATABASE_USER:-${VAL_DATABASE_USER}}" \
-    -Fc \
-    "${OPT_DATABASE_NAME:-${VAL_DATABASE_NAME}}" \
+    -Fc "${OPT_DATABASE_NAME:-${VAL_DATABASE_NAME}}" \
+    -f "${OPT_FILE%.*}"
+  xz "${OPT_FILE%.*}"
+}
+
+function export_plain_database () {
+  debug "${FUNCNAME[0]}" "$@"
+
+  PGPASSWORD=${OPT_DATABASE_PASSWORD:-${VAL_DATABASE_PASSWORD}} \
+    pg_dump \
+    -h "${OPT_DATABASE_HOST:-${VAL_DATABASE_HOST}}" \
+    -p "${OPT_DATABASE_PORT:-${VAL_DATABASE_PORT}}" \
+    -U "${OPT_DATABASE_USER:-${VAL_DATABASE_USER}}" \
+    -Fp "${OPT_DATABASE_NAME:-${VAL_DATABASE_NAME}}" \
     -f "${OPT_FILE%.*}"
   xz "${OPT_FILE%.*}"
 }
@@ -200,7 +215,6 @@ function credentials_ok () {
   else
     return 1
   fi
-
 }
 
 function run () {
@@ -212,6 +226,8 @@ function run () {
     import_database
   elif [[ -n "${OPT_EXPORT}" ]] && credentials_ok; then
     export_database
+  elif [[ -n "${OPT_EXPORT_PLAIN}" ]] && credentials_ok; then
+    export_plain_database
   else
     display_usage
   fi
