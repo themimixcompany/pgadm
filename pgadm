@@ -33,7 +33,7 @@ OPT_DATABASE_PASSWORD=
 
 OPT_DELETE=
 
-function error () {
+function error {
   if [[ "${OS}" == "Darwin" ]]; then
     echo "ERROR: ${@}" >&2
   else
@@ -43,7 +43,7 @@ function error () {
   exit 1
 }
 
-function warn () {
+function warn {
   if [[ "${OS}" == "Darwin" ]]; then
     echo "WARNING: ${@}" >&2
   else
@@ -51,7 +51,7 @@ function warn () {
   fi
 }
 
-function debug () {
+function debug {
   if [[ -n "${OPT_DEBUG}" ]]; then
     echo -n "** "
     echo "\${PWD}: ${PWD}"
@@ -59,7 +59,7 @@ function debug () {
   fi
 }
 
-function parse_arguments () {
+function parse_arguments {
   debug "${FUNCNAME[0]}" "$@"
 
   local opts=$(getopt -n "${SELF}" --options C:IEef:H:p:N:U:P --longoptions help,debug,verbose,version,config:,import,export,export-plain,file:,exclude-table:,database-host:,database-port:,database-name:,database-user:,database-password:,delete -- "$@")
@@ -94,7 +94,7 @@ function parse_arguments () {
   done
 }
 
-function process_arguments () {
+function process_arguments {
   debug "${FUNCNAME[0]}" "$@"
 
   if [[ -n "${OPT_HELP}" || "${#}" -lt 1 ]]; then
@@ -108,7 +108,7 @@ function process_arguments () {
   fi
 }
 
-function display_usage () {
+function display_usage {
   debug "${FUNCNAME[0]}" "$@"
 
   cat << EOF
@@ -134,7 +134,7 @@ EOF
   exit 0
 }
 
-function display_version () {
+function display_version {
   debug "${FUNCNAME[0]}" "$@"
 
   cat << EOF
@@ -143,7 +143,7 @@ EOF
   exit 0
 }
 
-function get_value () {
+function get_value {
   debug "${FUNCNAME[0]}" "$@"
 
   local key=$1
@@ -151,7 +151,7 @@ function get_value () {
   cat "${OPT_CONFIG}" | awk -F ' ' "/^  ${key}:/ {print \$2}" | sed -n 1p
 }
 
-function set_parameters () {
+function set_parameters {
   debug "${FUNCNAME[0]}" "$@"
 
   VAL_DATABASE_HOST=$(get_value host)
@@ -161,7 +161,7 @@ function set_parameters () {
   VAL_DATABASE_PASSWORD=$(get_value pass)
 }
 
-function import_database () {
+function import_database {
   debug "${FUNCNAME[0]}" "$@"
 
   unxz "${OPT_FILE}"
@@ -177,7 +177,7 @@ function import_database () {
   [[ -n "${OPT_DELETE}" ]] && rm -f "${OPT_FILE}"
 }
 
-function export_database () {
+function export_database {
   debug "${FUNCNAME[0]}" "$@"
 
   PGPASSWORD=${OPT_DATABASE_PASSWORD:-${VAL_DATABASE_PASSWORD}} \
@@ -190,7 +190,7 @@ function export_database () {
   xz "${OPT_FILE%.*}"
 }
 
-function export_plain_database () {
+function export_plain_database {
   debug "${FUNCNAME[0]}" "$@"
 
   PGPASSWORD=${OPT_DATABASE_PASSWORD:-${VAL_DATABASE_PASSWORD}} \
@@ -203,7 +203,7 @@ function export_plain_database () {
   xz "${OPT_FILE%.*}"
 }
 
-function credentials_ok () {
+function credentials_ok {
   debug "${FUNCNAME[0]}" "$@"
 
   if [[ -n "${OPT_DATABASE_HOST:-${VAL_DATABASE_HOST}}" && \
@@ -217,7 +217,7 @@ function credentials_ok () {
   fi
 }
 
-function run () {
+function run {
   debug "${FUNCNAME[0]}" "$@"
 
   set_parameters
@@ -233,7 +233,7 @@ function run () {
   fi
 }
 
-function main () {
+function main {
   debug "${FUNCNAME[0]}" "$@"
 
   parse_arguments "$@"
