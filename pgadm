@@ -5,7 +5,7 @@ set -euo pipefail
 readonly SELF="$(basename ${BASH_SOURCE[0]})"
 readonly SELF_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) > /dev/null 2>&1 && pwd)"
 readonly OS="$(uname)"
-readonly VERSION="1.2.2"
+readonly VERSION="1.2.4"
 
 OPT_HELP=
 OPT_DEBUG=
@@ -17,7 +17,6 @@ OPT_IMPORT=
 OPT_EXPORT=
 OPT_EXPORT_PLAIN=
 OPT_FILE=
-OPT_EXCLUDE_TABLE="users"
 
 VAL_DATABASE_HOST=
 VAL_DATABASE_NAME=
@@ -82,7 +81,6 @@ function parse_arguments {
       (-E|--export) OPT_EXPORT=true; shift ;;
       (-e|--export-plain) OPT_EXPORT_PLAIN=true; shift ;;
       (-f|--file) OPT_FILE=$2; shift 2 ;;
-      (--exclude-table) OPT_EXCLUDE_TABLE=$2; shift 2 ;;
       (-H|--database-host) OPT_DATABASE_HOST=$2; shift 2 ;;
       (-p|--database-port) OPT_DATABASE_PORT=$2; shift 2 ;;
       (-N|--database-name) OPT_DATABASE_NAME=$2; shift 2 ;;
